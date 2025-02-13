@@ -8,7 +8,7 @@ for cmd in gh jq column; do
 done
 
 COMMAND="${1:-prs}"
-shift
+shift  
 
 INCLUDE_DRAFTS=false
 ORG_FILTER=""
@@ -25,32 +25,33 @@ for arg in "$@"; do
   esac
 done
 
+ORG_QUERY=""
+if [[ -n "$ORG_FILTER" ]]; then
+  ORG_QUERY="org:$ORG_FILTER "
+fi
+
 QUERY_ISSUES="query {
-  search(query: \"org:$ORG_FILTER is:issue is:open\", type: ISSUE, first: 10) {
+  search(query: \"$ORG_QUERY involves:@me is:issue is:open sort:updated-desc\", type: ISSUE, first: 10) {
     nodes {
       ... on Issue {
         number
         title
         url
-        repository {
-          nameWithOwner
-        }
+        repository { nameWithOwner }
       }
     }
   }
 }"
 
 QUERY_PRS="query {
-  search(query: \"org:$ORG_FILTER is:pr is:open\", type: ISSUE, first: 100) {
+  search(query: \"$ORG_QUERY involves:@me is:pr is:open sort:updated-desc\", type: ISSUE, first: 100) {
     nodes {
       ... on PullRequest {
         number
         title
         url
         reviewDecision
-        repository {
-          nameWithOwner
-        }
+        repository { nameWithOwner }
         isDraft
       }
     }
@@ -58,15 +59,13 @@ QUERY_PRS="query {
 }"
 
 QUERY_REVIEWS="query {
-  search(query: \"org:$ORG_FILTER is:pr is:open review-requested:@me\", type: ISSUE, first: 10) {
+  search(query: \"$ORG_QUERY involves:@me is:pr is:open review-requested:@me sort:created-asc\", type: ISSUE, first: 10) {
     nodes {
       ... on PullRequest {
         number
         title
         url
-        repository {
-          nameWithOwner
-        }
+        repository { nameWithOwner }
       }
     }
   }
