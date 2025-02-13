@@ -7,6 +7,7 @@
 ✅ **Supports draft PRs with `--draft`**  
 ✅ **Lists open issues with `gh-me issues`**  
 ✅ **Shows PRs where you're a reviewer with `gh-me reviews`**  
+✅ **Filters PRs, issues, and reviews by organization with `--org=<organization>`**  
 ✅ **Color-coded for accessibility**  
 ✅ **Compact, easy-to-read formatting**  
 
@@ -44,11 +45,24 @@ PR#     REPOSITORY                     TITLE                                    
 #1      jimmy-guzman/jimmyguzman.com   first release                             PENDING     https://github.com/jimmy-guzman/jimmyguzman.com/pull/1
 ```
 
+### **Filtering PRs by Organization**
+To only show PRs from a specific **GitHub organization**, use:
+
+```sh
+gh-me prs --org=jimmy-guzman
+```
+
+```
+PR#     REPOSITORY                     TITLE                                      REVIEW      URL
+----    -----------------------------  -----------------------------------------  ----------  -----------------------------------------------
+#12     jimmy-guzman/ui                Fix button styles                          APPROVED    https://github.com/jimmy-guzman/ui/pull/12
+```
+
 ### **Including Draft PRs**
 Use the `--draft` flag to include **draft PRs**:
 
 ```sh
-gh-me --draft
+gh-me prs --draft
 ```
 
 ```
@@ -74,6 +88,19 @@ ISSUE#  REPOSITORY                     TITLE                                    
 #251    jimmy-guzman/popcorn.fyi       Double quotes                             https://github.com/jimmy-guzman/popcorn.fyi/issues/251
 ```
 
+### **Filtering Issues by Organization**
+To only show issues from a specific **GitHub organization**, use:
+
+```sh
+gh-me issues --org=jimmy-guzman
+```
+
+```
+ISSUE#  REPOSITORY                     TITLE                                      URL
+------  -----------------------------  -----------------------------------------  -----------------------------------------------
+#12     jimmy-guzman/api               Add new GraphQL resolver                   https://github.com/jimmy-guzman/api/issues/12
+```
+
 ---
 
 ### **Listing PRs Where You're a Reviewer**
@@ -92,8 +119,23 @@ PR#     REPOSITORY                     TITLE                                    
 
 ---
 
+### **Filtering Reviews by Organization**
+To **only show PRs where you've been requested as a reviewer** in a specific organization, use:
+
+```sh
+gh-me reviews --org=jimmy-guzman
+```
+
+```
+PR#     REPOSITORY                     TITLE                                      URL
+----    -----------------------------  -----------------------------------------  -----------------------------------------------
+#45     jimmy-guzman/api               Improve GraphQL mutations                  https://github.com/jimmy-guzman/api/pull/45
+#27     jimmy-guzman/frontend          Refactor navbar component                  https://github.com/jimmy-guzman/frontend/pull/27
+```
+
+---
+
 ## 🚀 Roadmap
 - 🛠️ **Additional sorting flags for PR & Issues filtering**
 - 🛠️ **Additional filter flags for PR & Issues filtering**
 - 🛠️ **More GitHub activity commands (stars, notifications, etc.)**
-
