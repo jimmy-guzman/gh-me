@@ -1,0 +1,49 @@
+#!/bin/bash
+
+for cmd in gh jq column; do
+  if ! type -p "$cmd" >/dev/null; then
+    echo "$cmd is required but not found. Please install it." >&2
+    exit 1
+  fi
+done
+
+
+COMMAND="${1:-prs}"
+shift
+
+INCLUDE_DRAFTS=false
+for arg in "$@"; do
+  if [[ "$arg" == "--draft" ]]; then
+    INCLUDE_DRAFTS=true
+  fi
+done
+
+
+QUERY_ISSUES="query { viewer { issues(first: 10, states: OPEN, orderBy: {field: CREATED_AT, direction: DESC}) { nodes { number title url repository { nameWithOwner } } } } }"
+
+QUERY_PRS="query { viewer { pullRequests(first: 100, states: OPEN, orderBy: {field: CREATED_AT, direction: ASC}) { nodes { number title url reviewDecision repository { nameWithOwner } isDraft } } } }"
+
+QUERY_REVIEWS="query { viewer { pullRequests(first: 10, states: OPEN) { nodes { number title url repository { nameWithOwner } reviewRequests(first: 5) { nodes { requestedReviewer { ... on User { login } } } } } } } }"
+
+
+TEMPLATE_ISSUES="{{tablerow \"\033[37mISSUE#\033[0m\" \"\033[37mREPOSITORY\033[0m\" \"\033[37mTITLE\033[0m\" \"\033[37mURL\033[0m\"}}{{range .data.viewer.issues.nodes}}{{tablerow (printf \"\033[97m#%v\033[0m\" .number) (printf \"\033[96m%s\033[0m\" .repository.nameWithOwner) .title (printf \"\033[92m%s\033[0m\" .url)}}{{end}}{{tablerender}}"
+
+TEMPLATE_PRS="{{tablerow \"\033[37mPR#\033[0m\" \"\033[37mREPOSITORY\033[0m\" \"\033[37mTITLE\033[0m\" \"\033[37mREVIEW\033[0m\" \"\033[37mURL\033[0m\"}}{{range .data.viewer.pullRequests.nodes}}{{if or $INCLUDE_DRAFTS (not .isDraft)}}{{tablerow (printf \"\033[97m#%v\033[0m\" .number) (printf \"\033[96m%s\033[0m\" .repository.nameWithOwner) .title (printf \"\033[94m%s\033[0m\" (or .reviewDecision \"PENDING\")) (printf \"\033[92m%s\033[0m\" .url)}}{{end}}{{end}}{{tablerender}}"
+
+TEMPLATE_REVIEWS="{{tablerow \"\033[37mPR#\033[0m\" \"\033[37mREPOSITORY\033[0m\" \"\033[37mTITLE\033[0m\" \"\033[37mURL\033[0m\"}}{{range .data.viewer.pullRequests.nodes}}{{if .reviewRequests.nodes}}{{tablerow (printf \"\033[97m#%v\033[0m\" .number) (printf \"\033[96m%s\033[0m\" .repository.nameWithOwner) .title (printf \"\033[92m%s\033[0m\" .url)}}{{end}}{{end}}{{tablerender}}"
+
+case "$COMMAND" in
+  prs)
+    exec gh api graphql -f query="$QUERY_PRS" --paginate --template="$TEMPLATE_PRS"
+    ;;
+  issues)
+    exec gh api graphql -f query="$QUERY_ISSUES" --paginate --template="$TEMPLATE_ISSUES"
+    ;;
+  reviews)
+    exec gh api graphql -f query="$QUERY_REVIEWS" --paginate --template="$TEMPLATE_REVIEWS"
+    ;;
+  *)
+    echo "Usage: gh-me [prs|issues|reviews] [--draft]" >&2
+    exit 1
+    ;;
+esac
